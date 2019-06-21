@@ -100,3 +100,20 @@ def train_forest(file_name, n_trees, n_features, max_depth):
         forest.append(tree)
     
     return forest
+
+def forest_predictions(file_name, forest):
+    
+    processed_data = load_and_process_data(file_name)
+    examples, labels = divide_data(processed_data)
+    decisionTree = DecisionTreeClassifier
+    
+    df_predictions = {}
+    for i in range(len(forest)):
+        column_name = "tree_{}".format(i)
+        predictions = forest[i].predict(examples, labels)
+        df_predictions[column_name] = predictions
+
+    df_predictions = pd.DataFrame(df_predictions)
+    random_forest_predictions = df_predictions.mode(axis=1)[0]
+    
+    return random_forest_predictions
