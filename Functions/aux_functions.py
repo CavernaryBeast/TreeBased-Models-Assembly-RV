@@ -55,27 +55,35 @@ def divide_data(df_bootstrapped):
 #   Function to implement the Random Subspace Method
 def random_subspace(bootstrapped_df, random_subspace):
     
-    columns_chosen = {}
     n_columns = bootstrapped_df.shape[1]
     column_indices = list(range(n_columns - 1))    # Excluding the last column which is the label
-    n_columns_choosed = int(n_columns*random_subspace)
+    n_columns_choosed = int((n_columns-1)*random_subspace)
     
     if (random_subspace < 0) or (random_subspace > 1):
         print('If you want the Random Subspace Method to work, you have to choose a number betweet 0 and 1')
         
     else:
         column_indices = random.sample(population=column_indices, k=n_columns_choosed)
+        
+    return column_indices
+
+def select_columns(data, column_indices):
     
+    #potential_splits = {}
+    columns_chosen = {}
     for column_index in column_indices:          
-        values = bootstrapped_df.iloc[:, column_index]
+        values = data.iloc[:, column_index]
         #We can take only the unique values if we want, cause the bootstrapping can introduce some values that are equal
-        # unique_values = np.unique(values)
+        #unique_values = np.unique(values)
         
         #potential_splits[column_index] = unique_values
         columns_chosen[column_index] = values
     columns_chosen = DataFrame.from_dict(columns_chosen)
+    #potential_splits = DataFrame.from_dict(unique_values)
     
     return columns_chosen
+    #return potential_splits
+
 
     #def meta_algorithm(train_df, n_trees, n_features, dt_max_depth):
     
@@ -84,36 +92,38 @@ def train_forest(file_name, n_trees, n_features, max_depth):
     processed_data = load_and_process_data(file_name)
     
     forest = []
+    indices_chosen = []
     decisionTree = DecisionTreeClassifier(max_depth=max_depth)
     for i in range(n_trees):
         
         #First, we apply the Bootstrapping
-        df_bootstrapped = aplicaBootstrapping(processed_data)
+        df_bootstrapped = bootstrapping(processed_data)
         #Second, we divide the data into features(examples) and labels
         examples, labels = divide_data(df_bootstrapped)
         #Third, we execute the Random Subspace Method to the examples
-        examples_randomized = random_subspace(examples, n_features)
-        print(examples_randomized.head(10))
+        column_indices = random_subspace(examples, n_features)
+        columns_selected = select_columns(examples, column_indices)
         #Fourth, we execute the fitting
-        tree = decisionTree.fit(examples_randomized, labels)
+        tree = decisionTree.fit(columns_selected, labels)
         #tree = decisionTree.DecisionTreeClassifier(max_depth = dt_max_depth, )
+        indices_chosen.append(column_indices)
         forest.append(tree)
     
-    return forest
+    return forest, indices_chosen
 
-def forest_predictions(file_name, forest):
+def forest_predictions(file_name, forest, indices_chosen):
     
     processed_data = load_and_process_data(file_name)
     examples, labels = divide_data(processed_data)
-    decisionTree = DecisionTreeClassifier
     
     df_predictions = {}
     for i in range(len(forest)):
         column_name = "tree_{}".format(i)
-        predictions = forest[i].predict(examples, labels)
+        columns_chosen = select_columns(examples, indices_chosen[i])
+        predictions = forest[i].predict(columns_chosen)
         df_predictions[column_name] = predictions
 
     df_predictions = pd.DataFrame(df_predictions)
     random_forest_predictions = df_predictions.mode(axis=1)[0]
     
-    return random_forest_predictions
+    return random_forest_predictions, df_predictions
