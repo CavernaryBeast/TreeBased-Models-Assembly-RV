@@ -4,6 +4,7 @@ import random as random
 import sklearn
 from sklearn.tree import DecisionTreeClassifier
 from pandas import DataFrame
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 def load_and_process_data(nombreArchivo):
 
@@ -127,3 +128,27 @@ def forest_predictions(file_name, forest, indices_chosen):
     random_forest_predictions = df_predictions.mode(axis=1)[0]
     
     return random_forest_predictions, df_predictions
+
+def balancearConjunto(nombreFichero):
+    test_data = load_and_process_data('adult_test')
+    examples_test, labels_test = divide_data(test_data)
+    income_porcentajes = labels_test.value_counts(normalize=True)
+    if(income_porcentajes.iloc[0] == 0,5):
+        if(income_porcentajes.iloc[0] > 0,5):
+            for i in labels_test.keys():
+                if (labels_test[i] == 0):
+                    labels_test.drop(i)
+                    break
+
+        if(income_porcentajes.iloc[1] > 0,5):
+            for i in labels_test.keys():
+                if (labels_test[i] == 1):
+                    labels_test.drop(i)
+                    break 
+                    
+    return labels_test;
+
+def calcularAccuracy(labels, forest_predictions, labels_balanceado):
+    tasa_acierto = accuracy_score(labels, forest_predictions)
+    tasa_acierto_balanceado = balanced_accuracy_score(labels_balanceado, forest_predictions)
+    return tasa_acierto, tasa_acierto_balanceado;
