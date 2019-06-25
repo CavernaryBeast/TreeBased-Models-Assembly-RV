@@ -2,32 +2,32 @@ import pandas as pd
 import numpy as np
 import random as random
 import sklearn
+from sklearn import preprocessing
 from sklearn.tree import DecisionTreeClassifier
 from pandas import DataFrame
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 def load_and_process_data(nombreArchivo):
 
-    datosSinProcesar = pd.read_csv( nombreArchivo + '.csv', header=None,
-                           names=None )
-        
-    print(datosSinProcesar.shape)  # Número de filas y columnas
+    datosSinProcesar = pd.read_csv(nombreArchivo, header=None,
+                           names=None)
+    #print(datosSinProcesar.shape)  # Número de filas y columnas
     #datosSinProcesar.head(10)
 
-    from sklearn import preprocessing
-    codificadores = []
+    #codificadores = []
     datosProcesados = pd.DataFrame()
     for variable, valores in datosSinProcesar.iteritems():
         le = preprocessing.LabelEncoder()
         le.fit(valores)
-        print('Codificación de valores para {}: {}'.format(variable, le.classes_))
-        codificadores.append(le)
+        #print('Codificación de valores para {}: {}'.format(variable, le.classes_))
+        #codificadores.append(le)
         datosProcesados[variable] = le.transform(valores)
 
     #examples_codificado.head(10)
-    return datosProcesados;
+    return datosProcesados
 
 def bootstrapping(train_df):
+    
     bootstrap_indices = np.random.randint(low=0, high=len(train_df), size=len(train_df))
     df_bootstrapped = train_df.iloc[bootstrap_indices]
     
@@ -37,11 +37,10 @@ def aplicaBootstrapping(datosProcesados):
     
     datosTrasBootstrapping = sklearn.utils.resample(datosProcesados, replace=True)
     
-    return datosTrasBootstrapping;
+    return datosTrasBootstrapping
 
 
 def divide_data(df_bootstrapped):
-    
     
 #    When selecting multiple columns or multiple rows in this manner,
 #    remember that in your selection e.g.[1:5], the rows/columns selected 
@@ -151,4 +150,4 @@ def forest_predictions(file_name, forest, indices_chosen):
 def calcularAccuracy(labels, forest_predictions):
     tasa_acierto = accuracy_score(labels, forest_predictions)
     tasa_acierto_balanceado = balanced_accuracy_score(labels, forest_predictions)
-    return tasa_acierto, tasa_acierto_balanceado;
+    return tasa_acierto, tasa_acierto_balanceado
