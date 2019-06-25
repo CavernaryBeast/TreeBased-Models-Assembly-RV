@@ -133,7 +133,7 @@ def balancearConjunto(nombreFichero):
     test_data = load_and_process_data('adult_test')
     examples_test, labels_test = divide_data(test_data)
     income_porcentajes = labels_test.value_counts(normalize=True)
-    if(income_porcentajes.iloc[0] == 0,5):
+    if(income_porcentajes.iloc[0] != 0,5):
         if(income_porcentajes.iloc[0] > 0,5):
             for i in labels_test.keys():
                 if (labels_test[i] == 0):
