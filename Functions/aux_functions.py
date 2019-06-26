@@ -56,8 +56,8 @@ def divide_data(df_bootstrapped):
 def random_subspace(bootstrapped_df, random_subspace):
     
     n_columns = bootstrapped_df.shape[1]
-    column_indices = list(range(n_columns - 1))    # Excluding the last column which is the label
-    n_columns_choosed = int((n_columns-1)*random_subspace)
+    column_indices = list(range(n_columns))    # Excluding the last column which is the label
+    n_columns_choosed = int((n_columns)*random_subspace)
     
     if (random_subspace < 0) or (random_subspace > 1):
         print('If you want the Random Subspace Method to work, you have to choose a number betweet 0 and 1')
@@ -93,7 +93,7 @@ def train_forest(file_name, n_trees, n_features, max_depth):
     
     forest = []
     indices_chosen = []
-    decisionTree = DecisionTreeClassifier(max_depth=max_depth)
+    decisionTree = DecisionTreeClassifier()
     for i in range(n_trees):
         
         #First, we apply the Bootstrapping
@@ -106,7 +106,7 @@ def train_forest(file_name, n_trees, n_features, max_depth):
         #Fourth, we execute the fitting
         tree = decisionTree.fit(columns_selected, labels)
         #tree = decisionTree.DecisionTreeClassifier(max_depth = dt_max_depth, )
-        indices_chosen.append(column_indices)
+        indices_chosen.append(columns_selected)
         forest.append(tree)
     
     return forest, indices_chosen
