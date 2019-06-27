@@ -5,27 +5,55 @@ import sklearn
 from sklearn import preprocessing
 from sklearn.tree import DecisionTreeClassifier
 from pandas import DataFrame
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
+#from sklearn.metrics import accuracy_score
+import sklearn.metrics as metrics
 
-def load_and_process_data(nombreArchivo):
+def load_and_process_data(training_set, test_set):
 
-    datosSinProcesar = pd.read_csv(nombreArchivo, header=None,
+    training_df = pd.read_csv(training_set, header=None,
+                           names=None)
+    test_df = pd.read_csv(test_set, header=None,
                            names=None)
     #print(datosSinProcesar.shape)  # Número de filas y columnas
     #datosSinProcesar.head(10)
-
+    
     #codificadores = []
-    datosProcesados = pd.DataFrame()
-    for variable, valores in datosSinProcesar.iteritems():
-        le = preprocessing.LabelEncoder()
-        le.fit(valores)
-        #print('Codificación de valores para {}: {}'.format(variable, le.classes_))
-        #codificadores.append(le)
-        datosProcesados[variable] = le.transform(valores)
+    #datosProcesados = pd.DataFrame()
+    train_codificado = pd.DataFrame()
+    test_codificado = pd.DataFrame()
+    
+    for i in(range(0, training_df.shape[1])):
+        if training_df[i].dtype != np.int64:
+            le = preprocessing.LabelEncoder()
+            le.fit(training_df[i].append(test_df[i]))
+            train_codificado[i] = le.transform(training_df[i])
+            test_codificado[i] = le.transform(test_df[i])
+        else:
+            train_codificado[i] = training_df[i]
+            test_codificado[i] = test_df[i]
+#    for variable, valores in datosSinProcesar.iteritems():
+#        le = preprocessing.LabelEncoder()
+#        le.fit(valores)
+#        #print('Codificación de valores para {}: {}'.format(variable, le.classes_))
+#        codificadores.append(le)
+#        datosProcesados[variable] = le.transform(valores)
 
     #examples_codificado.head(10)
-    return datosProcesados
+    return train_codificado, test_codificado
 
+#def load_process_and_code_data(nombreArchivo, codificadores):
+#    
+#    datosSinProcesar = pd.read_csv(nombreArchivo, header=None,
+#                           names=None)
+#    
+#    datosProcesados = pd.DataFrame();
+#    for variable, valores, le in (datosSinProcesar.iteritems(), codificadores):
+#        
+#        le.fit(valores)
+#        datosProcesados[variable] = le.transform(valores)
+#        
+#    return datosProcesados
+        
 def bootstrapping(train_df):
     
     bootstrap_indices = np.random.randint(low=0, high=len(train_df), size=len(train_df))
@@ -64,6 +92,7 @@ def random_subspace(bootstrapped_df, random_subspace):
         
     else:
         column_indices = random.sample(population=column_indices, k=n_columns_choosed)
+        column_indices = sorted(column_indices)
         
     return column_indices
 
@@ -87,29 +116,29 @@ def select_columns(data, column_indices):
 
     #def meta_algorithm(train_df, n_trees, n_features, dt_max_depth):
     
-def train_forest(file_name, n_trees, n_features, max_depth):
-    
-    processed_data = load_and_process_data(file_name)
-    
-    forest = []
-    indices_chosen = []
-    decisionTree = DecisionTreeClassifier()
-    for i in range(n_trees):
-        
-        #First, we apply the Bootstrapping
-        df_bootstrapped = bootstrapping(processed_data)
-        #Second, we divide the data into features(examples) and labels
-        examples, labels = divide_data(df_bootstrapped)
-        #Third, we execute the Random Subspace Method to the examples
-        column_indices = random_subspace(examples, n_features)
-        columns_selected = select_columns(examples, column_indices)
-        #Fourth, we execute the fitting
-        tree = decisionTree.fit(columns_selected, labels)
-        #tree = decisionTree.DecisionTreeClassifier(max_depth = dt_max_depth, )
-        indices_chosen.append(columns_selected)
-        forest.append(tree)
-    
-    return forest, indices_chosen
+#def train_forest(training_file, test_file, n_trees, n_features, max_depth):
+#    
+#    processed_data = load_and_process_data(training_file, test_file)
+#    
+#    forest = []
+#    indices_chosen = []
+#    decisionTree = DecisionTreeClassifier(max_depth = max_depth)
+#    for i in range(n_trees):
+#        
+#        #First, we apply the Bootstrapping
+#        df_bootstrapped = bootstrapping(processed_data)
+#        #Second, we divide the data into features(examples) and labels
+#        examples, labels = divide_data(df_bootstrapped)
+#        #Third, we execute the Random Subspace Method to the examples
+#        column_indices = random_subspace(examples, n_features)
+#        columns_selected = select_columns(examples, column_indices)
+#        #Fourth, we execute the fitting
+#        tree = decisionTree.fit(columns_selected, labels)
+#        #tree = decisionTree.DecisionTreeClassifier(max_depth = dt_max_depth, )
+#        indices_chosen.append(column_indices)
+#        forest.append(tree)
+#    
+#    return forest, indices_chosen, codificadores
 
 def forest_predictions(file_name, forest, indices_chosen):
     
@@ -127,6 +156,54 @@ def forest_predictions(file_name, forest, indices_chosen):
     random_forest_predictions = df_predictions.mode(axis=1)[0]
     
     return random_forest_predictions, df_predictions
+
+def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
+    
+    train_codificado, test_codificado = load_and_process_data(training_file, test_file)
+    
+    forest = []
+    indices_chosen = []
+    decisionTree = DecisionTreeClassifier(max_depth = max_depth)
+    
+    for i in range(n_trees):
+        
+        #First, we apply the Bootstrapping
+        train_bootstrapped = bootstrapping(train_codificado)
+        #Second, we divide the data into features(examples) and labels
+        train_examples, train_labels = divide_data(train_bootstrapped)
+        #Third, we execute the Random Subspace Method to the examples
+        column_indices = random_subspace(train_examples, n_columns)
+        columns_selected = select_columns(train_examples, column_indices)
+        #Fourth, we execute the fitting
+        tree = decisionTree.fit(columns_selected, train_labels)
+        #tree = decisionTree.DecisionTreeClassifier(max_depth = dt_max_depth, )
+        indices_chosen.append(column_indices)
+        forest.append(tree)
+    
+    test_examples, test_labels = divide_data(test_codificado)
+    df_predictions = {}
+    
+    for i in range(len(forest)):
+        column_name = "tree_{}".format(i)
+        columns_chosen = select_columns(test_examples, indices_chosen[i])
+        predictions = forest[i].predict(columns_chosen)
+        df_predictions[column_name] = predictions
+
+    df_predictions = pd.DataFrame(df_predictions)
+    forest_predictions = df_predictions.mode(axis=1)[0]
+    
+    tasa_acierto = metrics.accuracy_score(test_labels, forest_predictions)
+    tasa_acierto_balanceado = metrics.balanced_accuracy_score(test_labels, forest_predictions)
+    
+    print('Para el modelo con parámetros: \n Conjunto de entrenamiento: {} \n Conjunto de prueba: {} \n Árboles a entrenar: {} \n Porcentaje de columnas a seleccionar: {} \n Máxima profundidad de los árboles: {}'
+          .format(training_file, test_file, n_trees, n_columns, max_depth))
+    print('Hemos conseguido una tasa de aciertos del: {}'.format(tasa_acierto))
+    print('Y hemos conseguido una tasa de aciertos balanceada del: {}'.format(tasa_acierto_balanceado))
+    
+    
+    
+    
+    
 
 #def balancearConjunto(nombreFichero):
 #    test_data = load_and_process_data('adult_test')
@@ -148,6 +225,6 @@ def forest_predictions(file_name, forest, indices_chosen):
 #    return labels_test;
 
 def calcularAccuracy(labels, forest_predictions):
-    tasa_acierto = accuracy_score(labels, forest_predictions)
-    tasa_acierto_balanceado = balanced_accuracy_score(labels, forest_predictions)
+    tasa_acierto = metrics.accuracy_score(labels, forest_predictions)
+    tasa_acierto_balanceado = metrics.balanced_accuracy_score(labels, forest_predictions)
     return tasa_acierto, tasa_acierto_balanceado
