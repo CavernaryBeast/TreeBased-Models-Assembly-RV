@@ -23,7 +23,7 @@ def load_and_process_data(training_set, test_set):
     test_codificado = pd.DataFrame()
     
     for i in(range(0, training_df.shape[1])):
-        if training_df[i].dtype != np.int64:
+        if training_df[i].dtype != np.int64 and training_df[i].dtype != np.float64:
             le = preprocessing.LabelEncoder()
             le.fit(training_df[i].append(test_df[i]))
             train_codificado[i] = le.transform(training_df[i])
@@ -195,13 +195,15 @@ def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
     tasa_acierto = metrics.accuracy_score(test_labels, forest_predictions)
     tasa_acierto_balanceado = metrics.balanced_accuracy_score(test_labels, forest_predictions)
     
+    
     print('Para el modelo con parámetros: \n Conjunto de entrenamiento: {} \n Conjunto de prueba: {} \n Árboles a entrenar: {} \n Porcentaje de columnas a seleccionar: {} \n Máxima profundidad de los árboles: {}'
           .format(training_file, test_file, n_trees, n_columns, max_depth))
     print('Hemos conseguido una tasa de aciertos del: {}'.format(tasa_acierto))
     print('Y hemos conseguido una tasa de aciertos balanceada del: {}'.format(tasa_acierto_balanceado))
     
     
-    
+    return tasa_acierto, tasa_acierto_balanceado
+
     
     
 
