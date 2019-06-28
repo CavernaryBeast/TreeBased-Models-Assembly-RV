@@ -140,22 +140,22 @@ def select_columns(data, column_indices):
 #    
 #    return forest, indices_chosen, codificadores
 
-def forest_predictions(file_name, forest, indices_chosen):
+#def forest_predictions(file_name, forest, indices_chosen):
     
-    processed_data = load_and_process_data(file_name)
-    examples, labels = divide_data(processed_data)
+#    processed_data = load_and_process_data(file_name)
+#    examples, labels = divide_data(processed_data)
     
-    df_predictions = {}
-    for i in range(len(forest)):
-        column_name = "tree_{}".format(i)
-        columns_chosen = select_columns(examples, indices_chosen[i])
-        predictions = forest[i].predict(columns_chosen)
-        df_predictions[column_name] = predictions
+#    df_predictions = {}
+#    for i in range(len(forest)):
+#        column_name = "tree_{}".format(i)
+#        columns_chosen = select_columns(examples, indices_chosen[i])
+#        predictions = forest[i].predict(columns_chosen)
+#        df_predictions[column_name] = predictions
 
-    df_predictions = pd.DataFrame(df_predictions)
-    random_forest_predictions = df_predictions.mode(axis=1)[0]
+#    df_predictions = pd.DataFrame(df_predictions)
+#    random_forest_predictions = df_predictions.mode(axis=1)[0]
     
-    return random_forest_predictions, df_predictions
+#    return random_forest_predictions, df_predictions
 
 def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
     
@@ -224,7 +224,7 @@ def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
                     
 #    return labels_test;
 
-def calcularAccuracy(labels, forest_predictions):
-    tasa_acierto = metrics.accuracy_score(labels, forest_predictions)
-    tasa_acierto_balanceado = metrics.balanced_accuracy_score(labels, forest_predictions)
-    return tasa_acierto, tasa_acierto_balanceado
+#def calcularAccuracy(labels, forest_predictions):
+#    tasa_acierto = metrics.accuracy_score(labels, forest_predictions)
+#    tasa_acierto_balanceado = metrics.balanced_accuracy_score(labels, forest_predictions)
+#    return tasa_acierto, tasa_acierto_balanceado
