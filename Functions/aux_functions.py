@@ -195,13 +195,15 @@ def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
     tasa_acierto = metrics.accuracy_score(test_labels, forest_predictions)
     tasa_acierto_balanceado = metrics.balanced_accuracy_score(test_labels, forest_predictions)
     
+    
     print('Para el modelo con parámetros: \n Conjunto de entrenamiento: {} \n Conjunto de prueba: {} \n Árboles a entrenar: {} \n Porcentaje de columnas a seleccionar: {} \n Máxima profundidad de los árboles: {}'
           .format(training_file, test_file, n_trees, n_columns, max_depth))
     print('Hemos conseguido una tasa de aciertos del: {}'.format(tasa_acierto))
     print('Y hemos conseguido una tasa de aciertos balanceada del: {}'.format(tasa_acierto_balanceado))
     
     
-    
+    return tasa_acierto, tasa_acierto_balanceado
+
     
     
 
