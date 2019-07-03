@@ -23,7 +23,7 @@ def load_and_process_data(training_set, test_set):
     test_codificado = pd.DataFrame()
     
     for i in(range(0, training_df.shape[1])):
-        if training_df[i].dtype != np.int64 and training_df[i].dtype != np.float64:
+        if training_df[i].dtype != np.int64:
             le = preprocessing.LabelEncoder()
             le.fit(training_df[i].append(test_df[i]))
             train_codificado[i] = le.transform(training_df[i])
@@ -140,22 +140,22 @@ def select_columns(data, column_indices):
 #    
 #    return forest, indices_chosen, codificadores
 
-#def forest_predictions(file_name, forest, indices_chosen):
+def forest_predictions(file_name, forest, indices_chosen):
     
-#    processed_data = load_and_process_data(file_name)
-#    examples, labels = divide_data(processed_data)
+    processed_data = load_and_process_data(file_name)
+    examples, labels = divide_data(processed_data)
     
-#    df_predictions = {}
-#    for i in range(len(forest)):
-#        column_name = "tree_{}".format(i)
-#        columns_chosen = select_columns(examples, indices_chosen[i])
-#        predictions = forest[i].predict(columns_chosen)
-#        df_predictions[column_name] = predictions
+    df_predictions = {}
+    for i in range(len(forest)):
+        column_name = "tree_{}".format(i)
+        columns_chosen = select_columns(examples, indices_chosen[i])
+        predictions = forest[i].predict(columns_chosen)
+        df_predictions[column_name] = predictions
 
-#    df_predictions = pd.DataFrame(df_predictions)
-#    random_forest_predictions = df_predictions.mode(axis=1)[0]
+    df_predictions = pd.DataFrame(df_predictions)
+    random_forest_predictions = df_predictions.mode(axis=1)[0]
     
-#    return random_forest_predictions, df_predictions
+    return random_forest_predictions, df_predictions
 
 def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
     
@@ -195,15 +195,13 @@ def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
     tasa_acierto = metrics.accuracy_score(test_labels, forest_predictions)
     tasa_acierto_balanceado = metrics.balanced_accuracy_score(test_labels, forest_predictions)
     
-    
     print('Para el modelo con parámetros: \n Conjunto de entrenamiento: {} \n Conjunto de prueba: {} \n Árboles a entrenar: {} \n Porcentaje de columnas a seleccionar: {} \n Máxima profundidad de los árboles: {}'
           .format(training_file, test_file, n_trees, n_columns, max_depth))
     print('Hemos conseguido una tasa de aciertos del: {}'.format(tasa_acierto))
     print('Y hemos conseguido una tasa de aciertos balanceada del: {}'.format(tasa_acierto_balanceado))
     
     
-    return tasa_acierto, tasa_acierto_balanceado
-
+    
     
     
 
@@ -226,7 +224,23 @@ def meta_algorithm(training_file, test_file, n_trees, n_columns, max_depth):
                     
 #    return labels_test;
 
-#def calcularAccuracy(labels, forest_predictions):
-#    tasa_acierto = metrics.accuracy_score(labels, forest_predictions)
-#    tasa_acierto_balanceado = metrics.balanced_accuracy_score(labels, forest_predictions)
-#    return tasa_acierto, tasa_acierto_balanceado
+def calcularAccuracy(labels, forest_predictions):
+    tasa_acierto = metrics.accuracy_score(labels, forest_predictions)
+    tasa_acierto_balanceado = metrics.balanced_accuracy_score(labels, forest_predictions)
+    return tasa_acierto, tasa_acierto_balanceado
+
+def repeticionesMetaAlgorithm(repeticiones, training_file, test_file, n_trees, n_columns, l_max_depth):
+    promedio_tasa_acierto = []
+    promedio_tasa_acierto_balanceado = []
+    for i in range(repeticiones):
+        n_tasa_acierto, n_tasa_acierto_balanceado = meta_algorithm(training_file, test_file, n_trees, n_columns, l_max_depth)
+        promedio_tasa_acierto.append(n_tasa_acierto)
+        promedio_tasa_acierto_balanceado.append(n_tasa_acierto_balanceado)
+        
+    promedio_tasa_acierto = pd.DataFrame(promedio_tasa_acierto)
+    media = promedio_tasa_acierto.mean(axis=1)[0]
+    
+    promedio_tasa_acierto_balanceado = pd.DataFrame(promedio_tasa_acierto_balanceado)
+    media_balanceada = promedio_tasa_acierto_balanceado.mean(axis=1)[0]
+        
+    return media, media_balanceada
